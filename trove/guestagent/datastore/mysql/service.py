@@ -60,21 +60,6 @@ class MySqlApp(service.BaseMySqlApp):
             client.execute("SELECT WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS('%s')"
                            % txn)
 
-    def get_backup_image(self):
-        """Get the actual container image based on datastore version.
-
-        For example, this method converts openstacktrove/db-backup-mysql:1.0.0
-        to openstacktrove/db-backup-mysql5.7:1.0.0
-        """
-        image = cfg.get_configuration_property('backup_docker_image')
-        name, tag = image.rsplit(':', 1)
-
-        # Get minor version
-        cur_ver = semantic_version.Version.coerce(CONF.datastore_version)
-        minor_ver = f"{cur_ver.major}.{cur_ver.minor}"
-
-        return f"{name}{minor_ver}:{tag}"
-
     def get_backup_strategy(self):
         """Get backup strategy.
 
