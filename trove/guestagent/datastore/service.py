@@ -19,6 +19,8 @@ import time
 from oslo_log import log as logging
 from oslo_utils import timeutils
 
+import semantic_version
+
 from trove.backup.state import BackupState
 from trove.common import cfg
 from trove.common import context as trove_context
@@ -415,7 +417,19 @@ class BaseDbApp(object):
         self.start_db(update_db=True, ds_version=ds_version)
 
     def get_backup_image(self):
-        return cfg.get_configuration_property('backup_docker_image')
+        """Get the actual container image based on datastore version.
+
+        For example, this method converts openstacktrove/db-backup-mysql:1.0.0
+        to openstacktrove/db-backup-mysql5.7:1.0.0
+        """
+        image = cfg.get_configuration_property('backup_docker_image')
+        name, tag = image.rsplit(':', 1)
+
+        # Get minor version
+        cur_ver = semantic_version.Version.coerce(CONF.datastore_version)
+        minor_ver = f"{cur_ver.major}.{cur_ver.minor}"
+
+        return f"{name}{minor_ver}:{tag}"
 
     def get_backup_strategy(self):
         return cfg.get_configuration_property('backup_strategy')
